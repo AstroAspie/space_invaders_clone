@@ -1,3 +1,20 @@
+const rightScreenClick = false;
+const leftScreenClick = false;
+
+// For mobile controls
+document.addEventListener("mousedown", (e) => {
+  const leftBarrier = window.innerWidth / 2 - 100;
+  const rightBarrier = window.innerWidth / 2 + 100;
+
+  if (e.clientX > rightBarrier) {
+    shooter.setVelocityX(460);
+  } else if (e.clientX < leftBarrier) {
+    shooter.setVelocityX(-460);
+  } else {
+    shoot();
+  }
+});
+
 var config = {
   type: Phaser.AUTO,
   width: window.innerWidth - 20,
@@ -115,315 +132,300 @@ function create() {
     new Barrier(scene, window.innerWidth / 2 + 570, window.innerHeight - 250)
   );
 
-  this.input.on("pointerdown", function () {
+  this.input.on("pointerdown", function (e) {
     if (isStarted == false) {
       isStarted = true;
       startText.destroy();
       setInterval(makeSaucer, 15000);
-    } else {
-      shoot();
     }
   });
   initEnemys();
 }
 
 function update() {
-    if (isStarted == true) {
-        if (cursors.left.isDown || keyA.isDown) {
-            shooter.setVelocityX(-160);
-
-        }
-        else if (cursors.right.isDown || keyD.isDown) {
-            shooter.setVelocityX(160);
-
-        }
-        else {
-            shooter.setVelocityX(0);
-
-        }
+  if (isStarted == true) {
+    if (cursors.left.isDown || keyA.isDown) {
+      shooter.setVelocityX(-160);
+    } else if (cursors.right.isDown || keyD.isDown) {
+      shooter.setVelocityX(160);
+    } else {
+      shooter.setVelocityX(0);
     }
+  }
 }
 
 function shoot() {
-    if (isStarted == true) {
-        if (isShooting === false) {
-            manageBullet(scene.physics.add.sprite(shooter.x, shooter.y, "bullet"))
-            isShooting = true;
-            shootSound.play()
-        }
+  if (isStarted == true) {
+    if (isShooting === false) {
+      manageBullet(scene.physics.add.sprite(shooter.x, shooter.y, "bullet"));
+      isShooting = true;
+      shootSound.play();
     }
+  }
 }
 
 function initEnemys() {
-    for (c = 0; c < enemyInfo.count.col; c++) {
-        for (r = 0; r < enemyInfo.count.row; r++) {
-            var enemyX = (c * (enemyInfo.width + enemyInfo.padding)) + enemyInfo.offset.left;
-            var enemyY = (r * (enemyInfo.height + enemyInfo.padding)) + enemyInfo.offset.top;
-            enimies.create(enemyX, enemyY, 'alien').setOrigin(0.5);
-        }
+  for (c = 0; c < enemyInfo.count.col; c++) {
+    for (r = 0; r < enemyInfo.count.row; r++) {
+      var enemyX =
+        c * (enemyInfo.width + enemyInfo.padding) + enemyInfo.offset.left;
+      var enemyY =
+        r * (enemyInfo.height + enemyInfo.padding) + enemyInfo.offset.top;
+      enimies.create(enemyX, enemyY, "alien").setOrigin(0.5);
     }
+  }
 }
 
-setInterval(moveEnimies, 1000)
+setInterval(moveEnimies, 1000);
 var xTimes = 0;
 var yTimes = 0;
-var dir = "right"
+var dir = "right";
 function moveEnimies() {
-    if (isStarted === true) {
-        move.play()
-        if (xTimes === 20) {
-            if (dir === "right") {
-                dir = "left"
-                xTimes = 0
-            } else {
-                dir = "right"
-                xTimes = 0
-            }
-        }
-        if (dir === "right") {
-            enimies.children.each(function (enemy) {
-
-                enemy.x = enemy.x + 10;
-                enemy.body.reset(enemy.x, enemy.y);
-
-            }, this);
-            xTimes++;
-        } else {
-            enimies.children.each(function (enemy) {
-
-                enemy.x = enemy.x - 10;
-                enemy.body.reset(enemy.x, enemy.y);
-
-            }, this);
-            xTimes++;
-
-        }
+  if (isStarted === true) {
+    move.play();
+    if (xTimes === 20) {
+      if (dir === "right") {
+        dir = "left";
+        xTimes = 0;
+      } else {
+        dir = "right";
+        xTimes = 0;
+      }
     }
+    if (dir === "right") {
+      enimies.children.each(function (enemy) {
+        enemy.x = enemy.x + 10;
+        enemy.body.reset(enemy.x, enemy.y);
+      }, this);
+      xTimes++;
+    } else {
+      enimies.children.each(function (enemy) {
+        enemy.x = enemy.x - 10;
+        enemy.body.reset(enemy.x, enemy.y);
+      }, this);
+      xTimes++;
+    }
+  }
 }
 
 function manageBullet(bullet) {
-    bullet.setVelocityY(-380);
+  bullet.setVelocityY(-380);
 
-
-    var i = setInterval(function () {
-        enimies.children.each(function (enemy) {
-
-            if (checkOverlap(bullet, enemy)) {
-                bullet.destroy();
-                clearInterval(i)
-                isShooting = false
-                enemy.destroy()
-                score++;
-                scoreText.setText("Score: " + score);
-
-                explosionSound.play()
-
-                if ((score - ufoCount) === (enemyInfo.count.col * enemyInfo.count.row)) {
-                    end("Win")
-                }
-            }
-
-        }, this);
-        for (var step = 0; step < barriers.length; step++) {
-            if (barriers[step].checkCollision(bullet)) {
-                bullet.destroy();
-                clearInterval(i)
-                isShooting = false
-
-                scoreText.setText("Score: " + score);
-
-
-                explosionSound.play()
-
-                if ((score - ufoCount) === (enemyInfo.count.col * enemyInfo.count.row)) {
-                    end("Win")
-                }
-
-
-            }
-        }
-
-        for (var step = 0; step < saucers.length; step++) {
-            var saucer = saucers[step];
-            if (checkOverlap(bullet, saucer)) {
-                bullet.destroy();
-                clearInterval(i)
-                isShooting = false
-
-                scoreText.setText("Score: " + score);
-
-
-                explosionSound.play()
-
-                if ((score - ufoCount) === (enemyInfo.count.col * enemyInfo.count.row)) {
-                    end("Win")
-                }
-
-                saucer.destroy()
-                saucer.isDestroyed = true;
-                saucerSound.stop();
-                score++;
-                ufoCount++;
-            }
-        }
-    }, 10)
-    scene.physics.add.overlap(bullet, playerLava, function () {
+  var i = setInterval(function () {
+    enimies.children.each(function (enemy) {
+      if (checkOverlap(bullet, enemy)) {
         bullet.destroy();
         clearInterval(i);
-        explosionSound.play();
-        isShooting = false
-    })
+        isShooting = false;
+        enemy.destroy();
+        score++;
+        scoreText.setText("Score: " + score);
 
+        explosionSound.play();
+
+        if (score - ufoCount === enemyInfo.count.col * enemyInfo.count.row) {
+          end("Win");
+        }
+      }
+    }, this);
+    for (var step = 0; step < barriers.length; step++) {
+      if (barriers[step].checkCollision(bullet)) {
+        bullet.destroy();
+        clearInterval(i);
+        isShooting = false;
+
+        scoreText.setText("Score: " + score);
+
+        explosionSound.play();
+
+        if (score - ufoCount === enemyInfo.count.col * enemyInfo.count.row) {
+          end("Win");
+        }
+      }
+    }
+
+    for (var step = 0; step < saucers.length; step++) {
+      var saucer = saucers[step];
+      if (checkOverlap(bullet, saucer)) {
+        bullet.destroy();
+        clearInterval(i);
+        isShooting = false;
+
+        scoreText.setText("Score: " + score);
+
+        explosionSound.play();
+
+        if (score - ufoCount === enemyInfo.count.col * enemyInfo.count.row) {
+          end("Win");
+        }
+
+        saucer.destroy();
+        saucer.isDestroyed = true;
+        saucerSound.stop();
+        score++;
+        ufoCount++;
+      }
+    }
+  }, 10);
+  scene.physics.add.overlap(bullet, playerLava, function () {
+    bullet.destroy();
+    clearInterval(i);
+    explosionSound.play();
+    isShooting = false;
+  });
 }
 var enemyBulletVelo = 200;
 function manageEnemyBullet(bullet, enemy) {
-    var angle = Phaser.Math.Angle.BetweenPoints(enemy, shooter);
-    scene.physics.velocityFromRotation(angle, enemyBulletVelo, bullet.body.velocity);
-    enemyBulletVelo = enemyBulletVelo + 2
-    var i = setInterval(function () {
+  var angle = Phaser.Math.Angle.BetweenPoints(enemy, shooter);
+  scene.physics.velocityFromRotation(
+    angle,
+    enemyBulletVelo,
+    bullet.body.velocity
+  );
+  enemyBulletVelo = enemyBulletVelo + 2;
+  var i = setInterval(function () {
+    if (checkOverlap(bullet, shooter)) {
+      bullet.destroy();
+      clearInterval(i);
+      lives--;
+      livesText.setText("Lives: " + lives);
+      explosionSound.play();
 
-        if (checkOverlap(bullet, shooter)) {
-            bullet.destroy();
-            clearInterval(i);
-            lives--;
-            livesText.setText("Lives: " + lives);
-            explosionSound.play()
-
-            if (lives == 0) {
-                end("Lose")
-            }
-        }
-        for (var step = 0; step < barriers.length; step++) {
-            if (barriers[step].checkCollision(bullet)) {
-                bullet.destroy();
-                clearInterval(i)
-                isShooting = false
-
-                scoreText.setText("Score: " + score);
-
-
-                explosionSound.play()
-
-                if (score === (enemyInfo.count.col * enemyInfo.count.row)) {
-                    end("Win")
-                }
-            }
-        }
-    }, 10)
-    scene.physics.add.overlap(bullet, enemyLava, function () {
+      if (lives == 0) {
+        end("Lose");
+      }
+    }
+    for (var step = 0; step < barriers.length; step++) {
+      if (barriers[step].checkCollision(bullet)) {
         bullet.destroy();
-        explosionSound.play();
         clearInterval(i);
-    })
+        isShooting = false;
 
+        scoreText.setText("Score: " + score);
+
+        explosionSound.play();
+
+        if (score === enemyInfo.count.col * enemyInfo.count.row) {
+          end("Win");
+        }
+      }
+    }
+  }, 10);
+  scene.physics.add.overlap(bullet, enemyLava, function () {
+    bullet.destroy();
+    explosionSound.play();
+    clearInterval(i);
+  });
 }
 
 function checkOverlap(spriteA, spriteB) {
-    var boundsA = spriteA.getBounds();
-    var boundsB = spriteB.getBounds();
-    return Phaser.Geom.Intersects.RectangleToRectangle(boundsA, boundsB);
+  var boundsA = spriteA.getBounds();
+  var boundsB = spriteB.getBounds();
+  return Phaser.Geom.Intersects.RectangleToRectangle(boundsA, boundsB);
 }
 
 //Enemy Fire
-setInterval(enemyFire, 3000)
+setInterval(enemyFire, 3000);
 
 function enemyFire() {
-    if (isStarted === true) {
-        var enemy = enimies.children.entries[Phaser.Math.Between(0, enimies.children.entries.length - 1)];
-        manageEnemyBullet(scene.physics.add.sprite(enemy.x, enemy.y, "bullet"), enemy)
-    }
+  if (isStarted === true) {
+    var enemy =
+      enimies.children.entries[
+        Phaser.Math.Between(0, enimies.children.entries.length - 1)
+      ];
+    manageEnemyBullet(
+      scene.physics.add.sprite(enemy.x, enemy.y, "bullet"),
+      enemy
+    );
+  }
 }
 
 //Flying Saucers
 
-
-
 var saucers = [];
 function makeSaucer() {
-    if (isStarted == true) {
-        manageSaucer(scene.physics.add.sprite(0, 60, "saucer"));
-    }
+  if (isStarted == true) {
+    manageSaucer(scene.physics.add.sprite(0, 60, "saucer"));
+  }
 }
 
 setInterval(function () {
-    if (isStarted == true) {
-        for (var i = 0; i < saucers.length; i++) {
-            var saucer = saucers[i];
-            if (saucer.isDestroyed == false) {
-                manageEnemyBullet(scene.physics.add.sprite(saucer.x, saucer.y, "bullet"), saucer)
-
-            } else {
-                saucers.splice(i, 1);
-            }
-        }
+  if (isStarted == true) {
+    for (var i = 0; i < saucers.length; i++) {
+      var saucer = saucers[i];
+      if (saucer.isDestroyed == false) {
+        manageEnemyBullet(
+          scene.physics.add.sprite(saucer.x, saucer.y, "bullet"),
+          saucer
+        );
+      } else {
+        saucers.splice(i, 1);
+      }
     }
-
-}, 2000)
+  }
+}, 2000);
 
 function manageSaucer(saucer) {
-    saucers.push(saucer);
-    saucer.isDestroyed = false;
-    saucer.setVelocityX(100);
-    scene.physics.add.overlap(saucer, saucerLava, function () {
-        saucer.destroy()
-        saucer.isDestroyed = true;
-        saucerSound.stop()
-    })
-    saucerSound.play()
+  saucers.push(saucer);
+  saucer.isDestroyed = false;
+  saucer.setVelocityX(100);
+  scene.physics.add.overlap(saucer, saucerLava, function () {
+    saucer.destroy();
+    saucer.isDestroyed = true;
+    saucerSound.stop();
+  });
+  saucerSound.play();
 }
 
 //Barriers
 class Barrier {
-    constructor(scene, gx, y) {
-        var x = gx;
-        var y = y;
-        this.children = [];
-        this.scene = scene;
+  constructor(scene, gx, y) {
+    var x = gx;
+    var y = y;
+    this.children = [];
+    this.scene = scene;
 
-        for (var r = 0; r < 3; r++) {
-            for (var c = 0; c < 3; c++) {
-                var child = scene.add.rectangle(x, y, 30, 20, 0x1ff56);
-                scene.physics.add.existing(child);
-                child.health = 2;
-                this.children.push(child)
-                x = x + child.displayWidth;
-            }
-            x = gx;
-            y = y + child.displayHeight;
-        }
-
-        this.children[this.children.length-2].destroy();
-        this.children.splice(this.children.length-2, 1);        
+    for (var r = 0; r < 3; r++) {
+      for (var c = 0; c < 3; c++) {
+        var child = scene.add.rectangle(x, y, 30, 20, 0x1ff56);
+        scene.physics.add.existing(child);
+        child.health = 2;
+        this.children.push(child);
+        x = x + child.displayWidth;
+      }
+      x = gx;
+      y = y + child.displayHeight;
     }
-    checkCollision(sprite) {
-        var isTouching = false;
-        for (var i = 0; i < this.children.length; i++) {
-            var child = this.children[i];
-            if (checkOverlap(sprite, child)) {
-                isTouching = true;
 
-                if (this.children[i].health === 1) {
-                    child.destroy();
-                    this.children.splice(i, 1);
+    this.children[this.children.length - 2].destroy();
+    this.children.splice(this.children.length - 2, 1);
+  }
+  checkCollision(sprite) {
+    var isTouching = false;
+    for (var i = 0; i < this.children.length; i++) {
+      var child = this.children[i];
+      if (checkOverlap(sprite, child)) {
+        isTouching = true;
 
-                } else {
-                    this.children[i].health--;
-
-                }
-                break;
-            }
+        if (this.children[i].health === 1) {
+          child.destroy();
+          this.children.splice(i, 1);
+        } else {
+          this.children[i].health--;
         }
-        return isTouching;
+        break;
+      }
     }
+    return isTouching;
+  }
 }
 
 function end(con) {
-    explosionSound.stop();
-    saucerSound.stop();
-    shootSound.stop();
-    move.stop()
+  explosionSound.stop();
+  saucerSound.stop();
+  shootSound.stop();
+  move.stop();
 
-    alert(`You ${con}! Score: ` + score);
-    location.reload()
-
+  alert(`You ${con}! Score: ` + score);
+  location.reload();
 }
