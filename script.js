@@ -1,58 +1,58 @@
 var config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 },
-            debug: false
-        }
+  type: Phaser.AUTO,
+  width: window.innerWidth - 20,
+  height: window.innerHeight - 20,
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 0 },
+      debug: false,
     },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    }
+  },
+  scene: {
+    preload: preload,
+    create: create,
+    update: update,
+  },
 };
 
 var game = new Phaser.Game(config);
 enemyInfo = {
-    width: 40,
-    height: 20,
-    count: {
-        row: 5,
-        col: 9
-    },
-    offset: {
-        top: 100,
-        left: 60
-    },
-    padding: 5
+  width: 40,
+  height: 20,
+  count: {
+    row: 15,
+    col: 20,
+  },
+  offset: {
+    top: 100,
+    left: window.innerWidth - 20 - window.innerWidth / 1.35,
+  },
+  padding: 7,
 };
 
 var move = new Howl({
-    src: ['assets/move.mp3']
+  src: ["assets/move.mp3"],
 });
 
 var shootSound = new Howl({
-    src: ['assets/shoot.mp3']
+  src: ["assets/shoot.mp3"],
 });
 
 var explosionSound = new Howl({
-    src: ['assets/explosion.mp3']
+  src: ["assets/explosion.mp3"],
 });
 
 var saucerSound = new Howl({
-    src: ['assets/saucer.mp3'],
-    loop: true
+  src: ["assets/saucer.mp3"],
+  loop: true,
 });
 
 function preload() {
-    this.load.image("shooter", "assets/cannon.png")
-    this.load.image("alien", "assets/enemy.svg")
-    this.load.image("bullet", "assets/bullet.svg")
-    this.load.image("saucer", "assets/saucer.svg")
+  this.load.image("shooter", "assets/cannon.png");
+  this.load.image("alien", "assets/enemy.svg");
+  this.load.image("bullet", "assets/bullet.svg");
+  this.load.image("saucer", "assets/saucer.svg");
 }
 
 var score = 0;
@@ -61,44 +61,70 @@ var isStarted = false;
 var barriers = [];
 var ufoCount = 0;
 function create() {
-    scene = this;
-    cursors = scene.input.keyboard.createCursorKeys();
-    keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    isShooting = false;
-    this.input.keyboard.addCapture('SPACE');
-    enimies = this.physics.add.staticGroup();
-    playerLava = scene.add.rectangle(0, 0, 800, 10, 0x000).setOrigin(0)
-    enemyLava = scene.add.rectangle(0, 590, 800, 10, 0x000).setOrigin(0)
-    saucerLava = scene.add.rectangle(790, 0, 10, 600, 0x000).setOrigin(0)
-    scene.physics.add.existing(playerLava)
-    scene.physics.add.existing(enemyLava)
-    scene.physics.add.existing(saucerLava)
+  scene = this;
+  cursors = scene.input.keyboard.createCursorKeys();
+  keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+  isShooting = false;
+  this.input.keyboard.addCapture("SPACE");
+  enimies = this.physics.add.staticGroup();
+  playerLava = scene.add.rectangle(0, 0, 800, 10, 0x000).setOrigin(0);
+  enemyLava = scene.add.rectangle(0, 590, 800, 10, 0x000).setOrigin(0);
+  saucerLava = scene.add.rectangle(790, 0, 10, 600, 0x000).setOrigin(0);
+  scene.physics.add.existing(playerLava);
+  scene.physics.add.existing(enemyLava);
+  scene.physics.add.existing(saucerLava);
 
-    shooter = scene.physics.add.sprite(400, 560, 'shooter');
-    shooter.setCollideWorldBounds(true)
+  shooter = scene.physics.add.sprite(
+    window.innerWidth / 2,
+    window.innerHeight - 100,
+    "shooter"
+  );
+  shooter.setCollideWorldBounds(true);
 
-    scoreText = scene.add.text(16, 16, "Score: " + score, { fontSize: '18px', fill: '#FFF' })
-    livesText = scene.add.text(696, 16, "Lives: " + lives, { fontSize: '18px', fill: '#FFF' })
-    startText = scene.add.text(400, 300, "Click to Play", { fontSize: '18px', fill: '#FFF' }).setOrigin(0.5)
+  scoreText = scene.add.text(16, 16, "Score: " + score, {
+    fontSize: "18px",
+    fill: "#FFF",
+  });
+  livesText = scene.add.text(696, 16, "Lives: " + lives, {
+    fontSize: "18px",
+    fill: "#FFF",
+  });
+  startText = scene.add
+    .text(window.innerWidth / 2, 600, "Click to Play", {
+      fontSize: "18px",
+      fill: "#FFF",
+    })
+    .setOrigin(0.5);
 
-    this.input.keyboard.on('keydown-SPACE', shoot);
+  this.input.keyboard.on("keydown-SPACE", shoot);
 
-    barriers.push(new Barrier(scene, 50, 450))
-    barriers.push(new Barrier(scene, 370, 450))
-    barriers.push(new Barrier(scene, 690, 450))
+  barriers.push(
+    new Barrier(scene, window.innerWidth / 2 - 630, window.innerHeight - 250)
+  );
+  barriers.push(
+    new Barrier(scene, window.innerWidth / 2 - 330, window.innerHeight - 250)
+  );
+  barriers.push(
+    new Barrier(scene, window.innerWidth / 2 - 30, window.innerHeight - 250)
+  );
+  barriers.push(
+    new Barrier(scene, window.innerWidth / 2 + 270, window.innerHeight - 250)
+  );
+  barriers.push(
+    new Barrier(scene, window.innerWidth / 2 + 570, window.innerHeight - 250)
+  );
 
-    this.input.on('pointerdown', function () {
-        if (isStarted == false) {
-            isStarted = true;
-            startText.destroy()
-            setInterval(makeSaucer, 15000)
-
-        } else {
-            shoot()
-        }
-    });
-    initEnemys()
+  this.input.on("pointerdown", function () {
+    if (isStarted == false) {
+      isStarted = true;
+      startText.destroy();
+      setInterval(makeSaucer, 15000);
+    } else {
+      shoot();
+    }
+  });
+  initEnemys();
 }
 
 function update() {
